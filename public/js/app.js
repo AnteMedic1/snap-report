@@ -8,7 +8,6 @@ const titleInput = document.getElementById('report-title');
 const cameraInterface = document.getElementById('camera-interface');
 const fallbackInterface = document.getElementById('fallback-interface');
 
-
 function initCamera() {
     if (!('mediaDevices' in navigator) || !('getUserMedia' in navigator.mediaDevices)) {
         cameraInterface.style.display = 'none';
