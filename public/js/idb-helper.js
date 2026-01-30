@@ -24,7 +24,6 @@ async function saveReportOffline(report) {
     });
 }
 
-// Funkcija za dohvaćanje svih izvještaja
 async function getAllReports() {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -36,7 +35,6 @@ async function getAllReports() {
     });
 }
 
-// Funkcija za brisanje pojedinačnog izvještaja nakon slanja
 async function deleteReport(id) {
     const db = await openDB();
     return new Promise((resolve, reject) => {

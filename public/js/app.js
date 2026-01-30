@@ -9,10 +9,8 @@ const cameraInterface = document.getElementById('camera-interface');
 const fallbackInterface = document.getElementById('fallback-interface');
 
 
-// 1. Progressive Enhancement & Native API (Camera)
 function initCamera() {
     if (!('mediaDevices' in navigator) || !('getUserMedia' in navigator.mediaDevices)) {
-        // Fallback
         cameraInterface.style.display = 'none';
         fallbackInterface.style.display = 'block';
         return;
@@ -29,7 +27,6 @@ function initCamera() {
         });
 }
 
-// Capture Logic
 captureBtn.addEventListener('click', () => {
     const context = canvas.getContext('2d');
     canvas.width = player.videoWidth;
@@ -40,25 +37,20 @@ captureBtn.addEventListener('click', () => {
     cameraInterface.style.display = 'none';
     reportForm.style.display = 'block';
     
-    // Stop stream to save battery
     const stream = player.srcObject;
     if(stream) stream.getTracks().forEach(track => track.stop());
 });
 
-// 2. Service Worker Registration & Background Sync
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {
-                console.log('SW Registered');
-                // Ovdje bi išla logika za Push Subscription (traženje dozvole)
-                // requestNotificationPermission(registration); 
+                console.log('SW Registered'); 
             })
             .catch(err => console.log('SW Registration failed:', err));
     });
 }
 
-// 3. Save Logic (Sync)
 saveBtn.addEventListener('click', async () => {
     const report = {
         title: titleInput.value,
@@ -67,19 +59,16 @@ saveBtn.addEventListener('click', async () => {
     };
 
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        // Offline-First pristup sa Background Sync
-        await saveReportOffline(report); // Spremi u IDB
+        await saveReportOffline(report);
         
         const sw = await navigator.serviceWorker.ready;
         try {
-            await sw.sync.register('sync-reports'); // Registriraj sync event
+            await sw.sync.register('sync-reports');
             alert('Izvještaj spremljen! Bit će poslan čim uhvatimo internet.');
         } catch (err) {
             console.error(err);
         }
     } else {
-        // Fallback za preglednike koji ne podržavaju SyncManager
-        // Ovdje bi išao direktan fetch, ali za demo fokusiramo se na PWA features
         alert('Vaš preglednik ne podržava Background Sync.');
     }
     
@@ -88,7 +77,6 @@ saveBtn.addEventListener('click', async () => {
 
 initCamera();
 
-// 1. Pomoćna funkcija za pretvorbu ključa (stavi je iznad configurePushSub)
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -100,7 +88,6 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-// 2. Ispravljena glavna funkcija
 async function configurePushSub() {
   if (!('serviceWorker' in navigator)) return;
 
@@ -109,7 +96,7 @@ async function configurePushSub() {
     const sub = await reg.pushManager.getSubscription();
 
     if (sub === null) {
-      // VAŽNO: Koristimo pomoćnu funkciju s tvojim ključem sa slike
+
       const vapidPublicKey = 'BEimQ-nTSO9Z7JKzR5stCCTl9bh946Hk8nJ59yYtuJwv96f2DGD5JCkxg_nL2a_We88wzOukdGFUjztwvs3Yf6U';
       const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
 
@@ -118,7 +105,6 @@ async function configurePushSub() {
         applicationServerKey: convertedKey
       });
 
-      // Pošalji pretplatu na server
       await fetch('/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,7 +116,7 @@ async function configurePushSub() {
     console.error("Greška kod Push pretplate:", error);
   }
 }
-// Pozovite funkciju odmah nakon registracije Service Workera
+
 navigator.serviceWorker.register('/sw.js').then(() => {
     configurePushSub();
 });

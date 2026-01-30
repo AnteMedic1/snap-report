@@ -1,4 +1,4 @@
-importScripts('js/idb-helper.js'); // Učitaj helper unutar SW-a
+importScripts('js/idb-helper.js');
 
 const CACHE_NAME = 'snap-report-v1';
 const ASSETS = [
@@ -13,7 +13,6 @@ const ASSETS = [
     '/icons/icon-512.png'
 ];
 
-// 1. Install - Caching App Shell
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
@@ -22,7 +21,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// 2. Activate - Cleanup old caches
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys => Promise.all(
@@ -33,7 +31,6 @@ self.addEventListener('activate', event => {
     );
 });
 
-// 3. Fetch - Cache First Strategy for Static Assets
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
@@ -48,18 +45,15 @@ self.addEventListener('fetch', event => {
     );
 });
 
-// 4. Background Sync Event
 self.addEventListener('sync', event => {
     if (event.tag === 'sync-reports') {
         event.waitUntil(sendOfflineReports());
     }
 });
 
-// Funkcija za slanje podataka iz IndexedDB na Server
 async function sendOfflineReports() {
     console.log("Započinjem dohvaćanje podataka iz IDB...");
     
-    // Dohvaćamo sve izvještaje iz IndexedDB
     const reports = await getAllReports(); 
 
     if (!reports || reports.length === 0) {
@@ -69,14 +63,12 @@ async function sendOfflineReports() {
 
     for (const report of reports) {
         try {
-            // Linija koja stvara varijablu 'response'
             const response = await fetch('/sync-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(report)
             });
 
-            // SADA smiješ koristiti 'response' jer je definiran liniju iznad
             if (response.ok) {
                 console.log("Server primio podatke. ID za brisanje je:", report.id);
                 await deleteReport(report.id); 
@@ -90,7 +82,6 @@ async function sendOfflineReports() {
     }
 }
 
-// 5. Push Notification Event
 self.addEventListener('push', event => {
     const data = event.data.json();
     self.registration.showNotification(data.title, {
